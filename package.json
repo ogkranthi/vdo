@@ -1,0 +1,29 @@
+{
+  "name": "article-video-pipeline",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Turns published articles into TikTok/Pinterest-ready vertical videos with one command.",
+  "scripts": {
+    "create": "tsx src/cli.ts",
+    "typecheck": "tsc --noEmit",
+    "remotion:studio": "remotion studio src/remotion/index.ts"
+  },
+  "dependencies": {
+    "@google/genai": "^1.9.0",
+    "@remotion/bundler": "4.0.481",
+    "@remotion/cli": "4.0.481",
+    "@remotion/renderer": "4.0.481",
+    "dotenv": "^16.4.5",
+    "gray-matter": "^4.0.3",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "remotion": "4.0.481",
+    "tsx": "^4.19.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "typescript": "^5.5.0"
+  }
+}
