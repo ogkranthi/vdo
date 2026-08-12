@@ -1,0 +1,303 @@
+<title>Melody Records on LangChain</title>
+<style>
+  :root {
+    --ink: #16141f;
+    --panel: #221f31;
+    --panel-2: #2a2740;
+    --line: #3a3654;
+    --text: #f2efe6;
+    --muted: #9b96ad;
+    --accent: #2dd4a7;
+    --accent-dim: #1e8f72;
+    --amber: #f0a84b;
+    --display: "Helvetica Neue", "Arial Narrow", Arial, sans-serif;
+    --body: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    --mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-snap-type: y mandatory; }
+  body {
+    background: var(--ink);
+    color: var(--text);
+    font-family: var(--body);
+    line-height: 1.55;
+  }
+  .slide {
+    min-height: 100vh;
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: clamp(2rem, 6vw, 5rem);
+    max-width: 1160px;
+    margin: 0 auto;
+    position: relative;
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1.1rem;
+  }
+  h1, h2 {
+    font-family: var(--display);
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+    line-height: 1.06;
+  }
+  h1 { font-size: clamp(2.6rem, 6.5vw, 4.6rem); }
+  h2 { font-size: clamp(2rem, 4.6vw, 3.2rem); margin-bottom: 1.6rem; }
+  .lede { font-size: clamp(1.05rem, 1.7vw, 1.3rem); color: var(--muted); max-width: 42em; }
+  .lede strong, .card p strong { color: var(--text); font-weight: 600; }
+  .slide-no {
+    position: absolute;
+    bottom: 1.6rem;
+    right: clamp(2rem, 6vw, 5rem);
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+  .grid { display: grid; gap: 1rem; margin-top: 2.2rem; }
+  .cols-3 { grid-template-columns: repeat(3, 1fr); }
+  .cols-2 { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 800px) { .cols-3, .cols-2 { grid-template-columns: 1fr; } }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 1.35rem 1.45rem;
+  }
+  .card h3 {
+    font-family: var(--display);
+    font-size: 1.15rem;
+    margin-bottom: 0.45rem;
+    letter-spacing: 0.01em;
+  }
+  .card .tag {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--amber);
+    display: block;
+    margin-bottom: 0.6rem;
+  }
+  .card p { font-size: 0.95rem; color: var(--muted); }
+  .stack { display: flex; flex-direction: column; gap: 0.85rem; margin-top: 2.2rem; }
+  .layer {
+    display: grid;
+    grid-template-columns: 11.5rem 1fr;
+    gap: 1.2rem;
+    align-items: baseline;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--accent-dim);
+    border-radius: 8px;
+    padding: 1.05rem 1.3rem;
+  }
+  .layer.commercial { border-left-color: var(--amber); }
+  .layer .name { font-family: var(--display); font-weight: 700; font-size: 1.25rem; }
+  .layer .name small {
+    display: block; font-family: var(--mono); font-weight: 400;
+    font-size: 0.68rem; letter-spacing: 0.13em; text-transform: uppercase;
+    color: var(--muted); margin-top: 0.25rem;
+  }
+  .layer p { color: var(--muted); font-size: 0.98rem; }
+  @media (max-width: 700px) { .layer { grid-template-columns: 1fr; gap: 0.4rem; } }
+  .arch {
+    font-family: var(--mono);
+    font-size: clamp(0.68rem, 1.35vw, 0.85rem);
+    line-height: 1.7;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 1.5rem 1.7rem;
+    margin-top: 2.2rem;
+    overflow-x: auto;
+    color: var(--muted);
+    white-space: pre;
+  }
+  .arch b { color: var(--text); font-weight: 600; }
+  .arch i { color: var(--accent); font-style: normal; }
+  .arch u { color: var(--amber); text-decoration: none; }
+  .quote {
+    border-left: 4px solid var(--accent);
+    padding-left: 1.4rem;
+    margin-top: 2.4rem;
+    font-size: clamp(1.15rem, 2vw, 1.5rem);
+    font-family: var(--display);
+    color: var(--text);
+    max-width: 34em;
+    text-wrap: balance;
+  }
+  .kbd-hint {
+    position: fixed; bottom: 1.6rem; left: 50%; transform: translateX(-50%);
+    font-family: var(--mono); font-size: 0.72rem; color: var(--muted);
+    opacity: 0.8;
+  }
+  ol.agenda { margin: 2.2rem 0 0 1.2rem; display: flex; flex-direction: column; gap: 0.9rem; font-size: 1.08rem; }
+  ol.agenda li::marker { font-family: var(--mono); color: var(--accent); font-size: 0.85rem; }
+  ol.agenda span { color: var(--muted); }
+  a { color: var(--accent); }
+</style>
+
+<section class="slide" id="s1">
+  <p class="eyebrow">Melody Records × LangChain</p>
+  <h1>From prototype<br>to production agent</h1>
+  <p class="lede" style="margin-top:1.6rem">A customer-support agent for your music store — built on
+  LangChain's open-source stack, made reliable with LangSmith.
+  Everything in this session runs live.</p>
+  <p class="slide-no">1 / 6</p>
+</section>
+
+<section class="slide" id="s2">
+  <p class="eyebrow">The situation</p>
+  <h2>Your agent worked in the demo.<br>Production is another story.</h2>
+  <div class="grid cols-3">
+    <div class="card">
+      <span class="tag">Visibility</span>
+      <h3>You can't see failures</h3>
+      <p>"The bot said something weird yesterday" — but which step went wrong?
+      The model? A tool? The data? There's no flight recorder.</p>
+    </div>
+    <div class="card">
+      <span class="tag">Measurement</span>
+      <h3>You can't measure changes</h3>
+      <p>Every prompt tweak is a leap of faith. Did it get better, or just
+      different? Nobody can say without re-testing by hand.</p>
+    </div>
+    <div class="card">
+      <span class="tag">Trust</span>
+      <h3>You can't let it act</h3>
+      <p>Refunds, account changes — real writes need controls a raw LLM loop
+      doesn't have. So the agent stays a toy.</p>
+    </div>
+  </div>
+  <p class="quote">You can't fix what you can't see, and you can't ship what you can't measure.</p>
+  <p class="slide-no">2 / 6</p>
+</section>
+
+<section class="slide" id="s3">
+  <p class="eyebrow">The open-source stack</p>
+  <h2>Three layers, one ecosystem</h2>
+  <div class="stack">
+    <div class="layer">
+      <div class="name">LangChain <small>agent framework</small></div>
+      <p>Standard interfaces for models and tools, plus <b>create_agent</b> — a
+      production agent loop with middleware for the cross-cutting concerns:
+      auth, PII, limits, summarization.</p>
+    </div>
+    <div class="layer">
+      <div class="name">LangGraph <small>runtime</small></div>
+      <p>The durable engine underneath: state, streaming, persistence, and
+      first-class <b>human-in-the-loop interrupts</b> — pause a run, get
+      approval, resume. Infrastructure you'd otherwise build yourself.</p>
+    </div>
+    <div class="layer">
+      <div class="name">Deep Agents <small>architecture</small></div>
+      <p>The cognitive architecture the best agent teams converged on —
+      planning, <b>subagents</b>, context isolation — prebuilt, as one function
+      call.</p>
+    </div>
+    <div class="layer commercial">
+      <div class="name">LangSmith <small>commercial</small></div>
+      <p>Eyes and measuring stick for all of it: <b>tracing</b> every run,
+      <b>evals</b> scoring every change, <b>Studio</b> for visual debugging.
+      The OSS builds the agent; LangSmith is how you operate it.</p>
+    </div>
+  </div>
+  <p class="slide-no">3 / 6</p>
+</section>
+
+<section class="slide" id="s4">
+  <p class="eyebrow">What we built</p>
+  <h2>A front desk that delegates to specialists</h2>
+  <div class="arch">
+                    <b>customer</b>  ·  logged in as <u>customer #12</u> (runtime context, not chat)
+                        │
+        ┌───────────────▼────────────────┐
+        │  <b>supervisor</b> — front desk       │   auth · PII mask · loop limits
+        │  no data tools; routes only    │   <i>(middleware)</i>
+        └───────┬──────────────┬─────────┘
+          task  │              │  task
+   ┌────────────▼───┐   ┌──────▼──────────────┐
+   │ <b>music-catalog</b>  │   │ <b>customer-account</b>    │
+   │ search · top   │   │ profile · invoices  │
+   │ recommend      │   │ update ⏸ refund ⏸   │ ⏸ = <u>pauses for human approval</u>
+   └───────┬────────┘   └──────┬──────────────┘
+           └────────┬──────────┘
+                    ▼
+             <b>chinook.db</b>  ·  every query bound to the verified customer id
+  </div>
+  <p class="lede" style="margin-top:1.4rem">Scoped tools per specialist, isolated context windows, and
+  tenancy enforced in SQL — <strong>a jailbreak gets you a rude agent, not a data leak.</strong></p>
+  <p class="slide-no">4 / 6</p>
+</section>
+
+<section class="slide" id="s5">
+  <p class="eyebrow">Why LangSmith</p>
+  <h2>The engineering loop that makes it reliable</h2>
+  <div class="grid cols-3">
+    <div class="card">
+      <span class="tag">01 · Observe</span>
+      <h3>Tracing</h3>
+      <p>Every run recorded step by step: reasoning, tool inputs and outputs,
+      latency, tokens, cost. Debugging becomes clicking, not guessing.</p>
+    </div>
+    <div class="card">
+      <span class="tag">02 · Measure</span>
+      <h3>Datasets &amp; evals</h3>
+      <p>Golden questions scored by an LLM judge and deterministic trajectory
+      checks. Change the prompt or model — get a diff, not a feeling.</p>
+    </div>
+    <div class="card">
+      <span class="tag">03 · Improve</span>
+      <h3>Studio &amp; feedback</h3>
+      <p>Visual graph debugging, interactive runs, approval flows; annotation
+      queues turn odd production runs into new test cases.</p>
+    </div>
+  </div>
+  <p class="quote">Each piece feeds the next: traces become datasets, datasets become scores, scores tell you what to fix.</p>
+  <p class="slide-no">5 / 6</p>
+</section>
+
+<section class="slide" id="s6">
+  <p class="eyebrow">Live demo</p>
+  <h2>What you'll see next</h2>
+  <ol class="agenda">
+    <li><strong>Meet the agent</strong> — <span>the architecture, live in LangSmith Studio</span></li>
+    <li><strong>Music discovery</strong> — <span>recommendations from a real purchase history</span></li>
+    <li><strong>The trace</strong> — <span>every step of that answer, recorded</span></li>
+    <li><strong>A refund</strong> — <span>the agent pauses; a human approves the write</span></li>
+    <li><strong>The jailbreak that isn't</strong> — <span>"I'm actually customer 5…"</span></li>
+    <li><strong>Evals</strong> — <span>from vibes to numbers</span></li>
+  </ol>
+  <p class="lede" style="margin-top:2.4rem">A few hundred lines of open-source code — and the tooling to
+  run it like software, not luck.</p>
+  <p class="slide-no">6 / 6</p>
+</section>
+
+<p class="kbd-hint">↑ ↓ arrow keys or scroll</p>
+
+<script>
+  const slides = [...document.querySelectorAll(".slide")];
+  let idx = 0;
+  const sync = () => {
+    const y = window.scrollY + innerHeight / 2;
+    idx = slides.findIndex(s => y >= s.offsetTop && y < s.offsetTop + s.offsetHeight);
+    if (idx < 0) idx = 0;
+  };
+  addEventListener("scroll", sync, { passive: true });
+  addEventListener("keydown", e => {
+    if (e.key === "ArrowDown" || e.key === "PageDown" || e.key === " ") {
+      e.preventDefault(); sync();
+      slides[Math.min(idx + 1, slides.length - 1)].scrollIntoView({ behavior: "smooth" });
+    } else if (e.key === "ArrowUp" || e.key === "PageUp") {
+      e.preventDefault(); sync();
+      slides[Math.max(idx - 1, 0)].scrollIntoView({ behavior: "smooth" });
+    }
+  });
+</script>
