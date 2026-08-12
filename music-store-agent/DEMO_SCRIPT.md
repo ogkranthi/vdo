@@ -177,3 +177,4 @@ you swap models and *know* what changed.
 | 3 | HITL tools + batch evals interact awkwardly: interrupted runs never finish in `client.evaluate()` | 30 min | Kept write flows out of the batch dataset; would love first-class interrupt handling in evals |
 | 4 | Chinook invoice dates vary by dump version — demo lines like "what did I buy in March?" must be pinned to the actual data | 15 min | Verified against the built DB; demo script hardcodes invoice #350 |
 | 5 | (env-specific) LangSmith/docs domains blocked by sandbox egress policy during development | — | Built offline-first: full test suite runs with no keys; evals/Studio run on the demo machine |
+| 6 | Checkpointing emits a benign Pydantic warning when a dataclass runtime context is serialized (`Expected none ... input_value=SupportContext`) | 10 min | Cosmetic only — runs behave correctly; noted so nobody chases it mid-demo |
