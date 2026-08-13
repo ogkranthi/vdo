@@ -12,7 +12,7 @@ CustomerAuthMiddleware does three jobs:
    prompt tells the model the rules; the tools enforce them.
 """
 
-from typing import Any, NotRequired
+from typing import Annotated, Any, NotRequired
 
 from langchain.agents.middleware import AgentMiddleware, AgentState, ModelRequest
 from langchain_core.messages import SystemMessage
@@ -20,9 +20,20 @@ from langchain_core.messages import SystemMessage
 from agent import db
 
 
+def _last_write(current: Any, new: Any) -> Any:
+    """Reducer: last write wins.
+
+    Without a reducer LangGraph rejects two writes to the same key in one
+    step — and the supervisor CAN fan out to both subagents in parallel, each
+    of which returns the (identical, verified) customer identity in its state
+    update. Folding concurrent writes keeps parallel delegation safe.
+    """
+    return new
+
+
 class CustomerAuthState(AgentState):
-    customer_id: NotRequired[int | None]
-    customer_label: NotRequired[str | None]
+    customer_id: NotRequired[Annotated[int | None, _last_write]]
+    customer_label: NotRequired[Annotated[str | None, _last_write]]
 
 
 _AUTHED_BLOCK = """

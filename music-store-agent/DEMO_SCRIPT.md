@@ -121,6 +121,12 @@ The payoff line: "when you change the prompt, swap the model, or add a tool,
 you re-run this and get a diff, not a feeling. Side-by-side experiment
 comparison is how agent teams actually iterate."
 
+True story to tell here: the very first experiment run on this project caught
+a real bug — parallel delegation to both subagents collided on a shared state
+key (`InvalidUpdateError`), something no single-question manual test had hit.
+Experiment #1 shows the failing run; experiment #2 shows it fixed. Open both
+side by side if the audience wants proof this isn't theater.
+
 If time: open a trace from the experiment → full trace behind every score;
 mention annotation queues (route weird production runs to humans, feed them
 back into this dataset) and the Playground (re-run any traced LLM call with a
@@ -178,3 +184,4 @@ you swap models and *know* what changed.
 | 4 | Chinook invoice dates vary by dump version — demo lines like "what did I buy in March?" must be pinned to the actual data | 15 min | Verified against the built DB; demo script hardcodes invoice #350 |
 | 5 | (env-specific) LangSmith/docs domains blocked by sandbox egress policy during development | — | Built offline-first: full test suite runs with no keys; evals/Studio run on the demo machine |
 | 6 | Checkpointing emits a benign Pydantic warning when a dataclass runtime context is serialized (`Expected none ... input_value=SupportContext`) | 10 min | Cosmetic only — runs behave correctly; noted so nobody chases it mid-demo |
+| 7 | **Caught by evals, not by tests**: when the supervisor fans out to both subagents in parallel, each returns the customer identity in its state update → `InvalidUpdateError: At key 'customer_id': Can receive only one value per step` | 45 min | Added a last-write-wins reducer (`Annotated[..., _last_write]`) on the shared state keys. Great demo beat: experiment #1 shows the failure, experiment #2 shows it fixed — this is exactly the class of bug single-question manual testing never hits |
