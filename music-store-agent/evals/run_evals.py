@@ -16,6 +16,7 @@ Run:  python evals/run_evals.py
 
 import uuid
 
+from langchain_core.callbacks import BaseCallbackHandler
 from langsmith import Client
 from openevals.llm import create_llm_as_judge
 from openevals.prompts import CORRECTNESS_PROMPT
@@ -39,18 +40,36 @@ DATA_TOOLS = {
 }
 
 
+class ToolRecorder(BaseCallbackHandler):
+    """Records every tool invocation across the whole run tree.
+
+    Subagent tool calls never surface in the supervisor's message list (they
+    live in the subagent's isolated context), so the trajectory must be
+    captured via callbacks, which fire for nested runs too.
+    """
+
+    def __init__(self) -> None:
+        self.tools_called: list[str] = []
+
+    def on_tool_start(self, serialized, input_str, **kwargs) -> None:
+        name = (serialized or {}).get("name")
+        if name:
+            self.tools_called.append(name)
+
+
 def run_agent(inputs: dict) -> dict:
     """Target function: one dataset example -> agent answer + tool trajectory."""
+    recorder = ToolRecorder()
     result = agent.invoke(
         {"messages": [{"role": "user", "content": inputs["question"]}]},
-        {"configurable": {"thread_id": str(uuid.uuid4())}, "recursion_limit": 50},
+        {
+            "configurable": {"thread_id": str(uuid.uuid4())},
+            "recursion_limit": 50,
+            "callbacks": [recorder],
+        },
         context=SupportContext(customer_id=inputs.get("customer_id")),
     )
-    tools_called: list[str] = []
-    for message in result["messages"]:
-        for call in getattr(message, "tool_calls", None) or []:
-            tools_called.append(call["name"])
-    return {"answer": result["messages"][-1].text, "tools_called": tools_called}
+    return {"answer": result["messages"][-1].text, "tools_called": recorder.tools_called}
 
 
 correctness = create_llm_as_judge(
