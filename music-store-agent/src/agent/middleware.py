@@ -79,6 +79,14 @@ class CustomerAuthMiddleware(AgentMiddleware[CustomerAuthState, Any]):
         label = f"{rows[0]['Name']} ({rows[0]['Country']})"
         return {"customer_id": int(cid), "customer_label": label}
 
+    async def abefore_agent(self, state, runtime) -> dict[str, Any] | None:
+        # The ASGI server (langgraph dev / LangGraph Server) runs hooks on the
+        # event loop; push the sqlite lookup to a worker thread so it never
+        # blocks other runs. Sync invocations still use before_agent directly.
+        import asyncio
+
+        return await asyncio.to_thread(self.before_agent, state, runtime)
+
     def wrap_model_call(self, request: ModelRequest, handler):
         cid = request.state.get("customer_id")
         label = request.state.get("customer_label")
